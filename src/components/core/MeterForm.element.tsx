@@ -13,12 +13,12 @@ import {useEegArea} from "../../store/hook/Eeg.provider";
 
 interface MeterFormElementProps {
   rates: EegTariff[]
-  participant?: EegParticipant
+  metering?: Metering
   meterReadOnly?: boolean
   onChange?: (values: {name: string, value: any}[], event?: any) => void
 }
 
-const MeterFormElement: FC<MeterFormElementProps> = ({rates, participant, meterReadOnly, onChange}) => {
+const MeterFormElement: FC<MeterFormElementProps> = ({rates, metering, meterReadOnly, onChange}) => {
 
   const area = useEegArea()
 
@@ -38,8 +38,8 @@ const MeterFormElement: FC<MeterFormElementProps> = ({rates, participant, meterR
 
   useEffect(() => {
     // setSelectedDirection(0)
-    setWithWechselrichter(false)
-  }, [participant])
+    if (metering) setWithWechselrichter(metering.inverterid == null ? false : true)
+  }, [metering])
 
   useEffect(() => {
     setSelectedDirection(direction === "GENERATION" ? 1 : 0)
@@ -76,6 +76,13 @@ const MeterFormElement: FC<MeterFormElementProps> = ({rates, participant, meterR
       ("Verbrauchertarife")
       :
       ("Erzeugertarife")
+  }
+
+  const onChangeWithWechselrichter = (b: boolean) => {
+    if (!b) {
+      if (onChange) onChange([{name: `inverterid`, value: null}])
+    }
+    setWithWechselrichter(b)
   }
 
   return (
@@ -115,10 +122,10 @@ const MeterFormElement: FC<MeterFormElementProps> = ({rates, participant, meterR
             <InputForm name={"gridOperatorName"} label="Netzbetreiber-Name" control={control} rules={{required: true}}
                        type="text" onChangePartial={_onChange}/>
         </>}
-        <CheckboxComponent label="Wechselrichter anlegen" setChecked={setWithWechselrichter}
+        <CheckboxComponent label="Wechselrichter anlegen" setChecked={onChangeWithWechselrichter}
                            checked={withWechselrichter} style={{paddingTop: "0px"}}></CheckboxComponent>
         {withWechselrichter && (
-          <InputForm name={"inverterId"} label="Wechselrichternummer" control={control} rules={{required: false}}
+          <InputForm name={"inverterid"} label="Wechselrichternummer" control={control} rules={{required: false}}
                      type="text" onChangePartial={_onChange}/>
         )}
         <InputForm name={"transformer"} label="Transformator" control={control} rules={{required: false}} type="text" onChangePartial={_onChange}/>
