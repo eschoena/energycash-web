@@ -66,7 +66,7 @@ const AddMeterPaneComponent: FC = () => {
         <form id="submit-register-meter" onSubmit={handleSubmit((data) => onSubmit(data))}>
           <EegPaneTemplate>
             <FormProvider {...formMethods}>
-              <MeterFormElement rates={rates} participant={participant}/>
+              <MeterFormElement rates={rates}/>
               <MeterAddressFormElement participant={participant} isEditable={true} isOnline={isOnline}/>
             </FormProvider>
           </EegPaneTemplate>

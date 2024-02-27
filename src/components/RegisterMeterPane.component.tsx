@@ -37,7 +37,7 @@ const RegisterMeterPaneComponent: FC<RegisterMeterPaneComponentProps> = ({
     <div style={{display: "grid", gridTemplateColumns: "50% 50%", justifyContent: "space-between"}}>
       <FormProvider {...formMethods}>
         <div style={{flexGrow: "1", height: "100%"}}>
-          <MeterFormElement rates={rates} participant={participant}/>
+          <MeterFormElement rates={rates}/>
         </div>
         <div style={{flexGrow: "1", height: "100%"}}>
           <MeterAddressFormElement participant={participant} isOnline={isOnline} isEditable={true}/>
