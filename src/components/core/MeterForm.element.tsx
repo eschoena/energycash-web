@@ -1,5 +1,5 @@
 import React, {ClipboardEvent, FC, useEffect, useState} from "react";
-import {IonCol, IonGrid, IonList, IonRow} from "@ionic/react";
+import {IonButton, IonCol, IonGrid, IonIcon, IonList, IonRow, IonToolbar} from "@ionic/react";
 import SelectForm from "../form/SelectForm.component";
 import InputForm from "../form/InputForm.component";
 import CheckboxComponent from "../form/Checkbox.component";
@@ -8,17 +8,21 @@ import {EegTariff} from "../../models/eeg.model";
 import {useFormContext} from "react-hook-form";
 import ToggleButtonComponent from "../ToggleButton.component";
 import {eegPlug, eegSolar} from "../../eegIcons";
+import {trashBin} from "ionicons/icons";
 import {EegParticipant} from "../../models/members.model";
 import {useEegArea} from "../../store/hook/Eeg.provider";
+import { NIL } from "uuid";
 
 interface MeterFormElementProps {
   rates: EegTariff[]
   metering?: Metering
   meterReadOnly?: boolean
   onChange?: (values: {name: string, value: any}[], event?: any) => void
+  setWithInverter?: (state: boolean) => void
+  withInverter?: boolean
 }
 
-const MeterFormElement: FC<MeterFormElementProps> = ({rates, metering, meterReadOnly, onChange}) => {
+const MeterFormElement: FC<MeterFormElementProps> = ({rates, metering, meterReadOnly, onChange, setWithInverter, withInverter}) => {
 
   const area = useEegArea()
 
@@ -42,7 +46,17 @@ const MeterFormElement: FC<MeterFormElementProps> = ({rates, metering, meterRead
   }, [metering])
 
   useEffect(() => {
-    setSelectedDirection(direction === "GENERATION" ? 1 : 0)
+    switch (direction) {
+      case "CONSUMPTION":
+        setSelectedDirection(0)
+        break
+      case "GENERATION":
+        setSelectedDirection(1)
+        break
+      case "INVERTER":
+        setSelectedDirection(2)
+        break
+    }
   }, [direction])
 
   const getRatesOption = () => {
@@ -55,7 +69,17 @@ const MeterFormElement: FC<MeterFormElementProps> = ({rates, metering, meterRead
 
   const onChangeDirection = (s: number) => {
     // setSelectedDirection(s)
-    setValue(`direction`, s === 0 ? "CONSUMPTION" : "GENERATION");
+    switch (s) {
+      case 0:
+        setValue(`direction`, "CONSUMPTION");
+        break
+      case 1:
+        setValue(`direction`, "GENERATION");
+        break
+      case 2:
+        setValue(`direction`, "INVERTER");
+        break
+    }
   }
 
   const handleMeterPaste = (e: ClipboardEvent<HTMLIonInputElement>) => {
@@ -78,12 +102,10 @@ const MeterFormElement: FC<MeterFormElementProps> = ({rates, metering, meterRead
       ("Erzeugertarife")
   }
 
-  const onChangeWithWechselrichter = (b: boolean) => {
-    if (!b) {
-      if (onChange) onChange([{name: `inverterid`, value: null}])
-    }
-    setWithWechselrichter(b)
-  }
+  // const _onRemoveInverter = () => {
+  //   if (metering?.inverterid && onRemoveInverter) onRemoveInverter(metering.inverterid)
+  //   if (onChange) onChange([{name: `inverterid`, value: null}])
+  // }
 
   return (
     <>
@@ -91,7 +113,13 @@ const MeterFormElement: FC<MeterFormElementProps> = ({rates, metering, meterRead
         <IonRow>
           <IonCol size="auto">
             <ToggleButtonComponent
-              buttons={[{label: 'Verbraucher', icon: eegPlug}, {label: 'Erzeuger', icon: eegSolar}]}
+              buttons={meterReadOnly ?
+                      [{label: 'Verbraucher', icon: eegPlug}, 
+                      {label: 'Erzeuger', icon: eegSolar}, 
+                      {label: 'Wechselrichter', icon: eegSolar}]
+                      :
+                      [{label: 'Verbraucher', icon: eegPlug}, 
+                      {label: 'Erzeuger', icon: eegSolar}]}
               onChange={onChangeDirection}
               value={selectedDirection}
               changeable={isChangeable()}
@@ -122,11 +150,18 @@ const MeterFormElement: FC<MeterFormElementProps> = ({rates, metering, meterRead
             <InputForm name={"gridOperatorName"} label="Netzbetreiber-Name" control={control} rules={{required: true}}
                        type="text" onChangePartial={_onChange}/>
         </>}
-        <CheckboxComponent label="Wechselrichter anlegen" setChecked={onChangeWithWechselrichter}
-                           checked={withWechselrichter} style={{paddingTop: "0px"}}></CheckboxComponent>
+        {direction === "GENERATION" && !withWechselrichter && setWithInverter && (withInverter == true || withInverter == false) && (
+          <CheckboxComponent label="Wechselrichter anlegen" setChecked={setWithInverter}
+          checked={withInverter} style={{paddingTop: "0px"}}></CheckboxComponent>
+        )}
         {withWechselrichter && (
-          <InputForm name={"inverterid"} label="Wechselrichternummer" control={control} rules={{required: false}}
-                     type="text" onChangePartial={_onChange}/>
+          // <IonToolbar color="eeglight" style={{marginBottom: "10px"}}>
+            <InputForm name={"inverterid"} label="Wechselrichternummer" control={control} rules={{required: false}}
+                      type="text" onChangePartial={_onChange} readonly={true}/>
+          //   <IonButton slot="end" fill="clear" onClick={_onRemoveInverter} style={{marginRight:"20px"}}>
+          //     <IonIcon icon={trashBin} color="medium" slot="icon-only"></IonIcon>
+          //   </IonButton>
+          // </IonToolbar>
         )}
         <InputForm name={"transformer"} label="Transformator" control={control} rules={{required: false}} type="text" onChangePartial={_onChange}/>
         <InputForm name={"equipmentNumber"} label="Anlagen-Nr." control={control} rules={{required: false}}

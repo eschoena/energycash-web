@@ -5,7 +5,7 @@ export interface ParticipantState {
 
 export interface Metering {
   meteringPoint: string;
-  direction: "GENERATION" | "CONSUMPTION";
+  direction: "GENERATION" | "CONSUMPTION" | "INVERTER";
   ownValue: number;
   totalValue: number;
   participantId: string;

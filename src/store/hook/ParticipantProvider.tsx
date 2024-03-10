@@ -28,6 +28,8 @@ export interface ParicipantState {
   setBillingEnabled: (enabled: boolean) => void
   showAddMeterPane: boolean
   setShowAddMeterPane: (show: boolean) => void
+  showAddInverter: boolean
+  setShowAddInverter: (show: boolean) => void
   checkedParticipant: Record<string, boolean>
   setCheckedParticipant: (participantId: string, checked: boolean) => void
 }
@@ -47,6 +49,8 @@ const initialState: ParicipantState = {
   setBillingEnabled: (enabled: boolean) => {},
   showAddMeterPane: false,
   setShowAddMeterPane: (show: boolean) => {},
+  showAddInverter: false,
+  setShowAddInverter: (show: boolean) => {},
   checkedParticipant: {},
   setCheckedParticipant: (participantId: string, checked: boolean) => {}
 }
@@ -64,6 +68,7 @@ const ParticipantProvider: FC<{children: ReactNode}> = ({children}) => {
   const [detailOpen, setDetailOpen] = useState<boolean>(false);
   const [enableBilling, setEnableBilling] = useState<boolean>(false)
   const [showAddMeterPane, setShowAddMeterPane] = useState<boolean>(false)
+  const [showAddInverter, setShowAddInverter] = useState<boolean>(false)
   const [checkedParticipants, setCheckedParticipants] = useState<Record<string, boolean>>({})
 
   const newRateFn = () => {
@@ -114,6 +119,8 @@ const ParticipantProvider: FC<{children: ReactNode}> = ({children}) => {
     checkedParticipant: checkedParticipants,
     showAddMeterPane: showAddMeterPane,
     setShowAddMeterPane: setShowAddMeterPane,
+    showAddInverter: showAddInverter,
+    setShowAddInverter: setShowAddInverter,
     setCheckedParticipant: (participantId: string, checked: boolean) => { setCheckedParticipants((s) => {
       const newS = {...s}
       if (!checked) {

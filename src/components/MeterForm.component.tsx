@@ -1,13 +1,14 @@
-import React, {FC, useEffect} from "react";
+import React, {FC, useContext, useEffect, useState} from "react";
 import {FormProvider, useForm} from "react-hook-form";
 import {useAppDispatch, useAppSelector} from "../store";
 import {ratesSelector} from "../store/rate";
 import {selectedTenant} from "../store/eeg";
-import {selectedMeterSelector, selectedParticipantSelector, updateMeteringPoint} from "../store/participant";
+import {removeMeteringPoint, selectedMeterIdSelector, selectedMeterSelector, selectedParticipantSelector, updateMeteringPoint} from "../store/participant";
 import {Metering} from "../models/meteringpoint.model";
 import MeterFormElement from "./core/MeterForm.element";
 import EegPaneTemplate from "./core/EegPane.template";
 import MeterAddressFormElement from "./core/forms/MeterAddressForm/MeterAddressForm.element";
+import InverterFormElement from "./core/InverterForm.element";
 
 interface MeterFromComponentProps {
   meteringPoint: Metering
@@ -56,14 +57,39 @@ const MeterFormComponent: FC<MeterFromComponentProps> = ({meteringPoint}) => {
     handleSubmit((data) => onSubmit(data))(event)
   }
 
+  // const onRemoveInverter = (inverterid: string) => {
+  //   const participantId = participant?.id;
+  //   const m = {participantId: participantId, meteringPoint: inverterid, direction: "INVERTER"} as Metering
+  //   if (participantId) dispatcher(removeMeteringPoint({tenant, participantId, meter: m}))
+  // }
+
+  const Contents = () => {
+    
+    if (metering?.direction === "INVERTER") {
+      return (
+        <EegPaneTemplate>
+          <FormProvider {...formMethods} >
+            <InverterFormElement readOnly={true}/>
+          </FormProvider>
+        </EegPaneTemplate>
+      )
+    } else {
+      return (
+        <EegPaneTemplate>
+          <FormProvider {...formMethods} >
+            <MeterFormElement rates={rates} metering={metering} meterReadOnly={true} onChange={onChange}/>
+            <MeterAddressFormElement onChange={onChange}/>
+          </FormProvider>
+        </EegPaneTemplate>
+      )
+    }
+  }
+
   return (
     // <form onBlur={handleSubmit((data) => onSubmit(data))}>
-      <EegPaneTemplate>
-        <FormProvider {...formMethods} >
-          <MeterFormElement rates={rates} metering={metering} meterReadOnly={true} onChange={onChange}/>
-          <MeterAddressFormElement onChange={onChange}/>
-        </FormProvider>
-      </EegPaneTemplate>
+      <>
+        {Contents()}
+      </>
     // </form>
   )
 }

@@ -1,4 +1,4 @@
-import React, {FC, useEffect, useState} from "react";
+import React, {FC, useEffect, useState, useContext} from "react";
 import {EegParticipant} from "../../models/members.model";
 import cn from "classnames";
 
@@ -13,11 +13,12 @@ import {
   IonToolbar, useIonAlert, useIonToast
 } from "@ionic/react";
 import {
+  add,
   caretForwardOutline,
   documentTextOutline,
   logoEuro,
   person,
-  trashBin
+  trashBin,
 } from "ionicons/icons";
 import {eegPlug, eegSandClass, eegShieldCrown, eegSolar, eegStar} from "../../eegIcons";
 import {useAppDispatch, useAppSelector} from "../../store";
@@ -42,6 +43,8 @@ import {fileService} from "../../service/file.service";
 import {meteringInterReportSelectorV2, meteringReportSelectorV2, selectedPeriodSelector} from "../../store/energy";
 import MeterChartComponent from "./MeterChart.component";
 import {participantService} from "../../service/participant.service";
+import { ParticipantContext } from "../../store/hook/ParticipantProvider";
+import InverterFormComponent from "../core/InverterForm.component";
 
 type DynamicComponentKey = "memberForm" | "meterForm" | "documentForm" | "invoiceForm" | "participantDocumentForm"
 
@@ -60,6 +63,7 @@ const ParticipantDetailsPaneComponent: FC = () => {
   const rates = useAppSelector(ratesSelector);
   const activePeriod = useAppSelector(selectedPeriodSelector);
   const report = useAppSelector(meteringInterReportSelectorV2(selectedParticipant?.id, selectedMeter?.meteringPoint))
+  const {showAddInverter, setShowAddInverter} = useContext(ParticipantContext);
 
   // const [selectedMeter, setSelectedMeter] = useState<Metering | undefined>(undefined)
 
@@ -74,8 +78,6 @@ const ParticipantDetailsPaneComponent: FC = () => {
   const isMeterActive = () => selectedMeter?.status === "ACTIVE" || selectedMeter?.status === "INACTIVE"
   const isMeterPending = () => selectedMeter?.status === "PENDING"
 
-  const isGenerator = () => selectedMeter?.direction === 'GENERATION';
-
   // useEffect(() => {
   //   if (selectedMeterId && selectedParticipant) {
   //     const meter = selectedParticipant.meters.find(m => m.meteringPoint === selectedMeterId)
@@ -86,6 +88,17 @@ const ParticipantDetailsPaneComponent: FC = () => {
   //     setSelectedMeter(undefined)
   //   }
   // }, [])
+
+  const icon = () => {
+    if (selectedMeter) switch (selectedMeter.direction) {
+      case "CONSUMPTION":
+        return eegPlug
+      case "GENERATION":
+        return eegSolar
+      case "INVERTER":
+        return eegSolar
+    }
+  }
 
   const onUpdateParticipant = (participant: EegParticipant) => {
     dispatcher(updateParticipant({tenant, participant})).unwrap().then(() => console.log("Participant Updated"))
@@ -98,7 +111,7 @@ const ParticipantDetailsPaneComponent: FC = () => {
   }
 
   const dynamicComponent = (componentKey: DynamicComponentKey) => {
-
+    if (showAddInverter) return <InverterFormComponent/>
     switch (componentKey) {
       case "memberForm":
         return selectedParticipant ? <MemberFormComponent participant={selectedParticipant} rates={rates} formId={""}
@@ -187,6 +200,10 @@ const ParticipantDetailsPaneComponent: FC = () => {
     }
   }
 
+  const onAddInverter = () => {
+    setShowAddInverter(true)
+  }
+
   const archive = () => {
     participantAlert({
       subHeader: "Mitglied archivieren",
@@ -227,7 +244,7 @@ const ParticipantDetailsPaneComponent: FC = () => {
           <IonLabel>Benutzer archivieren</IonLabel>
         </IonItem>
       </div>
-      <div style={{display: "flex", flexDirection: "row", height: "100%"}}>
+      <div style={{display: "flex", flexDirection: "row", height: "95%"}}>
         <div style={{display: "flex", flexDirection: "column", width: "50%"}}>
           <div className={"details-box"}>
             {(selectedParticipant.status === 'NEW' || selectedParticipant.status === 'PENDING') ? (
@@ -288,8 +305,14 @@ const ParticipantDetailsPaneComponent: FC = () => {
           <div className={"details-box"}>
             {selectedMeter ? (
                 <div className="ion-padding" slot="content">
-                  <IonToolbar
-                    color="primary"><IonTitle>{formatMeteringPointString(selectedMeter.meteringPoint)}</IonTitle></IonToolbar>
+                  <IonToolbar color="primary">
+                    <IonTitle>{formatMeteringPointString(selectedMeter.meteringPoint)}</IonTitle>
+                    {selectedMeter.direction === "GENERATION" && !selectedMeter.inverterid && (
+                      <IonButton slot="end" fill="clear" onClick={onAddInverter}>
+                        <IonIcon icon={add} slot="icon-only" style={{color: "#ffffff"}}/>
+                      </IonButton>
+                    )}
+                  </IonToolbar>
 
                   {!isMeterActive() &&
                       <IonCard color="warning-light">
@@ -309,7 +332,7 @@ const ParticipantDetailsPaneComponent: FC = () => {
                   <IonItem button lines="full"
                            className={cn("eeg-item-box", {"selected": activeMenu === "meterForm"})}
                            onClick={() => setActiveMenu("meterForm")}>
-                    <IonIcon icon={isGenerator() ? eegSolar : eegPlug} slot="start"></IonIcon>
+                    <IonIcon icon={icon()} slot="start"></IonIcon>
                     <div>
                       <div className={"detail-header"}>Details und Adresse</div>
                     </div>

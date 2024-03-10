@@ -1,4 +1,4 @@
-import React, {FC} from "react";
+import React, {FC, ReactNode} from "react";
 import {IonCard, IonCol, IonGrid, IonIcon, IonLabel, IonRow} from "@ionic/react";
 import {eegExclamation, eegPlug, eegSolar} from "../../eegIcons";
 import {EegParticipant} from "../../models/members.model";
@@ -21,13 +21,14 @@ interface MeterCardComponentProps {
   onSelect?: (e: React.MouseEvent<HTMLIonCardElement, MouseEvent>, participantId: string, meter: Metering) => void;
   showCash?: boolean;
   isSelected?: boolean;
+  children?: ReactNode;
 }
 
 interface CARDSTYLE {
   [key: string]: any
 };
 
-const MeterCardComponent: FC<MeterCardComponentProps> = ({participant, meter, hideMeter, onSelect, showCash, isSelected}) => {
+const MeterCardComponent: FC<MeterCardComponentProps> = ({participant, meter, hideMeter, onSelect, showCash, isSelected, children}) => {
 
   const currentDate = new Date();
   const year = currentDate.getFullYear();
@@ -88,6 +89,9 @@ const MeterCardComponent: FC<MeterCardComponentProps> = ({participant, meter, hi
   if (isSelected) {
     cardStyle = {...cardStyle, backgroundColor:"#e5ffdd"}
   }
+  if (meter.direction === "INVERTER") {
+    cardStyle = {...cardStyle, marginBottom: "0"}
+  }
 
   const meterColorStyle = () => {
     if (isMeterActive()) {
@@ -99,13 +103,24 @@ const MeterCardComponent: FC<MeterCardComponentProps> = ({participant, meter, hi
     }
   }
 
+  const icon = () => {
+    switch (meter.direction) {
+      case "CONSUMPTION":
+        return eegPlug
+      case "GENERATION":
+        return eegSolar
+      case "INVERTER":
+        return eegSolar
+    }
+  }
+
   // /*history.push(`/participant/${participant.id}/meter/${meter.meteringPoint}`*/
   return (
     <IonCard style={cardStyle} onClick={(e) => onSelect && onSelect(e, participant.id, meter)}>
       <IonGrid fixed={true} style={{paddingTop: "12px"}}>
         <IonRow style={meterColorStyle()}>
           <IonCol size={"1"}>
-            <IonIcon icon={isMeterRejected() ? eegExclamation : isGenerator(meter) ? eegSolar : eegPlug} size="small"></IonIcon>
+            <IonIcon icon={isMeterRejected() ? eegExclamation : icon()} size="small"></IonIcon>
           </IonCol>
           <IonCol size={isMeterPending() ? "11" : "7"}>
             {/*<IonLabel style={{textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap"}}>{participant.participant.meters[0].meteringPoint}</IonLabel>*/}
@@ -125,6 +140,15 @@ const MeterCardComponent: FC<MeterCardComponentProps> = ({participant, meter, hi
           )}
         </IonRow>
       </IonGrid>
+
+      {children && <IonGrid>
+        <IonRow>
+          <div style={{width: "100%"}}>
+            {children}
+          </div>
+        </IonRow>
+      </IonGrid>}
+      
       {isMeterPending() || hideMeter || (
         <div style={{height: "6px", width: "100%", background: "rgba(0, 0, 0, 0.04)"}}>
           <div style={{position: "absolute", height: "6px", right: "0", width: "" + barRatio(report) + "%"}}

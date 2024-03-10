@@ -55,7 +55,7 @@ export interface Report {
 
 export interface MeterReport {
   meterId: string
-  meterDir: "GENERATION" | "CONSUMPTION"
+  meterDir: "GENERATION" | "CONSUMPTION" | "INVERTER"
   from: number
   until: number
   report: Report

@@ -409,7 +409,7 @@ const ParticipantPaneComponent: FC<ParticipantPaneProps> = (
     (p: EegParticipant) =>
     (e: React.MouseEvent<HTMLIonButtonElement, MouseEvent>) => {
       dispatcher(selectParticipant(p.id));
-      if (p.meters.length > 0) {
+      if (p.id != selectedParticipant?.id && p.meters.length > 0) {
         dispatcher(selectMetering(p.meters[0].meteringPoint));
       }
       setShowAddMeterPane(true);
@@ -791,17 +791,56 @@ const ParticipantPaneComponent: FC<ParticipantPaneProps> = (
                     onShowAddMeterPage={onShowAddMeterPage}
                   >
                     {hideMeter ||
-                      p.meters.map((m, i) => (
-                        <MeterCardComponent
-                          key={"meter" + i}
-                          participant={p}
-                          meter={m}
-                          hideMeter={false}
-                          showCash={showAmount}
-                          onSelect={onSelectMeter}
-                          isSelected={m.meteringPoint === selectedMeterId}
-                        />
-                      ))}
+                      p.meters.map((m, i) => {
+                        if (m.direction !== "INVERTER") {
+                          if (!m.inverterid) {
+                            return (
+                              <MeterCardComponent
+                                key={"meter" + i}
+                                participant={p}
+                                meter={m}
+                                hideMeter={false}
+                                showCash={showAmount}
+                                onSelect={onSelectMeter}
+                                isSelected={m.meteringPoint === selectedMeterId}
+                              />
+                            )
+                          } else {
+                          var inverter = {} as Metering
+                            var key 
+                            {p.meters.map((I, j) => {
+                              if (I.meteringPoint === m.inverterid) {
+                                inverter = I
+                                key = j + 1
+                              }
+                            })}
+                            return (
+                              <MeterCardComponent
+                                key={"meter" + i}
+                                participant={p}
+                                meter={m}
+                                hideMeter={false}
+                                showCash={showAmount}
+                                onSelect={onSelectMeter}
+                                isSelected={m.meteringPoint === selectedMeterId}
+                              >
+                                {
+                                  key && <MeterCardComponent
+                                    key={"meter" + i + key}
+                                    participant={p}
+                                    meter={inverter}
+                                    hideMeter={false}
+                                    showCash={showAmount}
+                                    onSelect={onSelectMeter}
+                                    isSelected={inverter.meteringPoint === selectedMeterId}
+                                  />
+                                }
+                              </MeterCardComponent>
+                            )
+                          }
+                        } 
+                      })
+                    }
                   </MemberComponent>
                 </div>
               );
