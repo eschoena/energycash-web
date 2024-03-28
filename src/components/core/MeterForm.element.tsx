@@ -34,12 +34,15 @@ const MeterFormElement: FC<MeterFormElementProps> = ({rates, metering, meterRead
   const direction = watch('direction')
 
   const isChangeable = () => {
-    if (meterReadOnly === undefined) {
+    if (meterReadOnly === undefined || !meterReadOnly) {
+      if (withWechselrichter) {
+        return false
+      }
       return true
     }
-    return !meterReadOnly
-  }
-
+    return false
+  } 
+  
   useEffect(() => {
     // setSelectedDirection(0)
     if (metering) setWithWechselrichter(metering.inverterid == null ? false : true)

@@ -38,7 +38,8 @@ const InverterFormElement: FC<InverterFormElementProps> = ({readOnly}) => {
             </IonRow>
         </IonGrid>
         <IonList>
-            <InputForm name={"meteringPoint"} label="Wechselrichternummer" control={control} readonly={isReadOnly()}/>
+            <InputForm name={"meteringPoint"} label="Wechselrichternummer" control={control} readonly={isReadOnly()}
+                    rules={{required: "Wechselrichternummer fehlt"}}/>
         </IonList>
     </>)
 }
